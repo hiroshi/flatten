@@ -21,13 +21,14 @@ const db = pgp('postgres://postgres@localhost:5432/ci')
 const primus = require('primus').createServer(spark => {
   spark.on('data', data => {
     console.log(spark.id, ': data:', data)
-    // spark.write(data)
     if (data.put) {
       const json = data.put
       console.log('inserting item:', json)
       db.one('INSERT INTO items (json) VALUES ($1) RETURNING id', [json])
         .then(data => {
           console.log('=> id:', data.id)
+          // spark.write({id: data.id, value: json})
+          primus.write({id: data.id, value: json})
         })
     }
   })
@@ -35,7 +36,7 @@ const primus = require('primus').createServer(spark => {
     console.log(spark.id, ': end.')
   })
 }, {port:8080, transformer: 'websockets'})
-primus.save(__dirname + '/primus-client.js')
+// primus.save(__dirname + '/primus-client.js')
 // server.listen(8080, () => {
 //   console.log('listen port 8080')
 // })
