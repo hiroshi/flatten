@@ -18,18 +18,34 @@ const db = pgp('postgres://postgres@localhost:5432/ci')
 //     console.log(data)
 //   })
 
+// {filter: [{spark:,reqId]}, ...], ...}
+const subscriptions = {}
+
 const primus = require('primus').createServer(spark => {
   spark.on('data', req => {
     console.log(spark.id, ': request:', req)
     if (req.post) {
-      const value = req.post
-      console.log('POST:', value)
-      db.one('INSERT INTO items (json) VALUES ($1) RETURNING *', [value])
-        .then(data => {
-          console.log('=>', data)
-          // spark.write({id: data.id, value: json})
-          primus.write({id: req.id, value: data})
+      const json = req.post
+      db.one('INSERT INTO items (json) VALUES ($1) RETURNING *', [json])
+        .then(item => {
+          console.log('=>', item)
+          spark.write({id: req.id, value: item})
+          // console.log(subscriptions)
+          for (filter in subscriptions) {
+            if (!subscriptions.hasOwnProperty(filter)) continue;
+            // FIXME: check if filter match the item (maybe execute SELECT is easy...)
+            subscriptions[filter].forEach(sub => {
+              sub.spark.write({id: sub.reqId, value: item})
+            })
+          }
         })
+    } else if (typeof(req.subscribe) !== 'undefined') {
+      console.log(req)
+      const filter = req.subscribe
+      if (!subscriptions[filter]) {
+        subscriptions[filter] = []
+      }
+      subscriptions[filter].push({spark: spark, reqId: req.id})
     }
   })
   spark.on('end', () => {

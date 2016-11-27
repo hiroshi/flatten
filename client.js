@@ -9,41 +9,34 @@ const flat = {
   _callbacks: {},
   _request: function(method, value, callback) {
     const id = String(Math.random())
-    this._callbacks[id] = callback
-    var req = {id: id}
+    const req = {id: id}
+    this._callbacks[id] = {callback: callback, once: method === 'post'}
     req[method] = value
     client.write(req)
   },
   open: function() {
     client.on('data', data => {
-      this._callbacks[data.id](data.value)
-      delete this._callbacks[data.id]
+      callback = this._callbacks[data.id]
+      callback.callback(data.value)
+      if (callback.once) {
+        delete this._callbacks[data.id]
+      }
     })
   },
   post: function(json, callback) {
-    // client.write({post: json})
-    // if (callback) {
-    //   client.on('data', data => {
-    //     callback(data)
-    //   })
-    // }
     this._request('post', json, callback)
   },
   subscribe: function(filter, callback) {
-    this._request('subscribe', true, callback)
-    // if (callback) {
-    //   const id = String(Math.random())
-    //   client.write({id: id, subscribe: true})
-    //   client.on('data', data => {
-    //   })
-    // } else {
-    //   console.error('missing callback for subscribe().')
-    // }
+    this._request('subscribe', filter, callback)
   }
 }
 
 flat.open()
 
-flat.post({tags: ['foo', 'bar'], message: 'hello'}, data => {
-  console.log('item:', data)
+flat.subscribe(null, item => {
+  console.log('new item:', item)
+})
+
+flat.post({tags: ['foo', 'bar'], message: 'hello'}, item => {
+  console.log('item:', item)
 })
