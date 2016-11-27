@@ -19,16 +19,16 @@ const db = pgp('postgres://postgres@localhost:5432/ci')
 //   })
 
 const primus = require('primus').createServer(spark => {
-  spark.on('data', data => {
-    console.log(spark.id, ': data:', data)
-    if (data.put) {
-      const json = data.put
-      console.log('inserting item:', json)
-      db.one('INSERT INTO items (json) VALUES ($1) RETURNING id', [json])
+  spark.on('data', req => {
+    console.log(spark.id, ': request:', req)
+    if (req.post) {
+      const value = req.post
+      console.log('POST:', value)
+      db.one('INSERT INTO items (json) VALUES ($1) RETURNING *', [value])
         .then(data => {
-          console.log('=> id:', data.id)
+          console.log('=>', data)
           // spark.write({id: data.id, value: json})
-          primus.write({id: data.id, value: json})
+          primus.write({id: req.id, value: data})
         })
     }
   })

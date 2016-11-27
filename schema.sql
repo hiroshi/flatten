@@ -1,5 +1,6 @@
 -- CREATE DATABASE ci;
 CREATE TABLE items (
-  id SERIAL,
-  json json
+  id bigserial,
+  json json,
+  timestamp timestamp WITH TIME ZONE DEFAULT current_timestamp
 );
