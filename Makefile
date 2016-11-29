@@ -10,4 +10,4 @@ init:
 	docker exec -i $(docker-compose ps -q postgres) psql -U postgres ci < schema.sql
 
 dev-server:
-	yarn run webpack-dev-server client.js bundle.js
+	yarn run webpack-dev-server
