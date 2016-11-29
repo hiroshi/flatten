@@ -52,7 +52,7 @@ const primus = require('primus').createServer(spark => {
     console.log(spark.id, ': end.')
   })
 }, {port:8080, transformer: 'websockets'})
-// primus.save(__dirname + '/primus-client.js')
+primus.save(__dirname + '/primus-client.js')
 // server.listen(8080, () => {
 //   console.log('listen port 8080')
 // })
