@@ -3,10 +3,10 @@ const flat = require('./flat.js')
 
 flat.open()
 
-flat.subscribe(null, (statement, item) => {
-  console.log(statement, item)
+flat.subscribe({limit: 3}, (statement, item) => {
+  console.log(statement, ':', item)
 })
 
-flat.post({tags: ['foo', 'bar'], message: 'hello'}, (statement, item) => {
-  console.log(statement, item)
-})
+// flat.post({tags: ['foo', 'bar'], message: 'hello'}, (statement, item) => {
+//   console.log(statement, ':', item)
+// })

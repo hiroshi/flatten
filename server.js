@@ -47,6 +47,16 @@ const primus = require('primus').createServer(spark => {
         subscriptions[filter] = []
       }
       subscriptions[filter].push({spark: spark, reqId: req.id})
+      console.log(filter)
+      if (filter && filter.limit > 0) {
+        db.manyOrNone('SELECT * FROM items ORDER BY timestamp DESC LIMIT $1', [filter.limit])
+          .then(items => {
+            items.forEach(item => {
+              spark.write({id: req.id, statement: 'select', value: item})
+            })
+          })
+          .catch(err => { console.error(err) })
+      }
     }
   })
   spark.on('end', () => {

@@ -12,7 +12,7 @@ ReactDOM.render(
 
 flat.open()
 
-flat.subscribe(null, (statement, item) => {
+flat.subscribe({limit: 5}, (statement, item) => {
   console.log(statement, item)
 })
 
