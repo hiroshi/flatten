@@ -22,6 +22,7 @@ const db = pgp('postgres://postgres@localhost:5432/ci')
 const subscriptions = {}
 
 const primus = require('primus').createServer(spark => {
+  console.log(spark.id, ': connect.')
   spark.on('data', req => {
     console.log(spark.id, ': request:', req)
     if (req.post) {
