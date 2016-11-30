@@ -12,8 +12,8 @@ ReactDOM.render(
 
 flat.open()
 
-flat.subscribe(null, item => {
-  console.log('new item:', item)
+flat.subscribe(null, (statement, item) => {
+  console.log(statement, item)
 })
 
 // flat.post({tags: ['foo', 'bar'], message: 'hello'}, item => {

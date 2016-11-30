@@ -18,7 +18,7 @@ const flat = {
   open: function() {
     client.on('data', data => {
       callback = this._callbacks[data.id]
-      callback.callback(data.value)
+      callback.callback(data.statement, data.value)
       if (callback.once) {
         delete this._callbacks[data.id]
       }

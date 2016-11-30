@@ -30,13 +30,13 @@ const primus = require('primus').createServer(spark => {
       db.one('INSERT INTO items (json) VALUES ($1) RETURNING *', [json])
         .then(item => {
           console.log('=>', item)
-          spark.write({id: req.id, value: item})
+          spark.write({id: req.id, statement: 'insert', value: item})
           // console.log(subscriptions)
           for (filter in subscriptions) {
             if (!subscriptions.hasOwnProperty(filter)) continue;
             // FIXME: check if filter match the item (maybe execute SELECT is easy...)
             subscriptions[filter].forEach(sub => {
-              sub.spark.write({id: sub.reqId, value: item})
+              sub.spark.write({id: sub.reqId, statement: 'insert', value: item})
             })
           }
         })
