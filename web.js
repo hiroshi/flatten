@@ -8,9 +8,10 @@ class App extends React.Component {
   constructor (props) {
     super(props)
     this.state = {items: []}
-    flat.open()
 
+    console.log('subscribe')
     flat.subscribe({limit: 5}, (statement, value) => {
+      console.log('published')
       if (Array.isArray(value)) {
         this.setState({items: value})
       } else {

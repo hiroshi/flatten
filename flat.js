@@ -16,7 +16,12 @@ const flat = {
     req[method] = value
     client.write(req)
   },
-  open: function() {
+  _open: function(callback) {
+    client.on('open', () => {
+      if (callback) {
+        callback()
+      }
+    })
     client.on('data', data => {
       callback = this._callbacks[data.id]
       callback.callback(data.statement, data.value)
@@ -45,5 +50,6 @@ const flat = {
     client.destroy()
   }
 }
+flat._open()
 module.exports = flat
 

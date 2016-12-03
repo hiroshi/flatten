@@ -5,8 +5,17 @@ const PubSub = {
   _subscriptions: [],
   subscribe: function(filter, spark, reqId) {
     this._subscriptions.push({filter: filter, spark: spark, reqId: reqId})
+    select(filter, items => {
+      spark.write({id: reqId, statement: 'select', value: items})
+    })
+  },
+  unsubscribe: function(spark) {
+    this._subscriptions = this._subscriptions.filter(sub => {
+      return sub.spark !== spark
+    })
   },
   publish: function() {
+    console.log('PubSub.publish: num subs', this._subscriptions.length)
     this._subscriptions.forEach(sub => {
       select(sub.filter, items => {
         sub.spark.write({id: sub.reqId, statement: 'select', value: items})
@@ -44,6 +53,7 @@ const primus = require('primus').createServer(spark => {
   })
   spark.on('end', () => {
     console.log(spark.id, ': client disconnected.')
+    PubSub.unsubscribe(spark)
   })
 }, {port:8080, transformer: 'websockets'})
 primus.save(__dirname + '/primus-client.js')
