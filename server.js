@@ -18,8 +18,22 @@ const db = pgp('postgres://postgres@localhost:5432/ci')
 //     console.log(data)
 //   })
 
-// {filter: [{spark:,reqId]}, ...], ...}
+// {filterKey: [{spark:,reqId]}, ...], ...}
 const subscriptions = {}
+// const subscriptions = new Set()
+
+function select(filter, callback) {
+  if (filter && filter.limit > 0) {
+    db.manyOrNone('SELECT * FROM items ORDER BY timestamp DESC LIMIT $1', [filter.limit])
+      .then(items => {
+        callback(items)
+        // items.reverse().forEach(item => {
+        //   spark.write({id: req.id, statement: 'select', value: item})
+        // })
+      })
+      .catch(err => { console.error(err) })
+  }
+}
 
 const primus = require('primus').createServer(spark => {
   console.log(spark.id, ': connect.')
@@ -31,32 +45,42 @@ const primus = require('primus').createServer(spark => {
         .then(item => {
           console.log('=>', item)
           spark.write({id: req.id, statement: 'insert', value: item})
-          // console.log(subscriptions)
-          for (filter in subscriptions) {
-            if (!subscriptions.hasOwnProperty(filter)) continue;
+          // console.log('subscriptions:', subscriptions)
+          for (filterKey in subscriptions) {
+            if (!subscriptions.hasOwnProperty(filterKey)) continue;
             // FIXME: check if filter match the item (maybe execute SELECT is easy...)
-            subscriptions[filter].forEach(sub => {
-              sub.spark.write({id: sub.reqId, statement: 'insert', value: item})
+            subscriptions[filterKey].forEach(sub => {
+              // sub.spark.write({id: sub.reqId, statement: 'insert', value: item})
+              console.log('filterKey:', filterKey)
+              select(JSON.parse(filterKey), items => {
+                sub.spark.write({id: sub.reqId, statement: 'select', value: items})
+              })
             })
           }
         })
     } else if (typeof(req.subscribe) !== 'undefined') {
-      console.log(req)
+      // console.log(req)
       const filter = req.subscribe
-      if (!subscriptions[filter]) {
-        subscriptions[filter] = []
+      const filterKey = JSON.stringify(filter)
+      // console.log("subscribe filter:", filter)
+      if (!subscriptions[filterKey]) {
+        subscriptions[filterKey] = []
       }
-      subscriptions[filter].push({spark: spark, reqId: req.id})
-      console.log(filter)
-      if (filter && filter.limit > 0) {
-        db.manyOrNone('SELECT * FROM items ORDER BY timestamp DESC LIMIT $1', [filter.limit])
-          .then(items => {
-            items.forEach(item => {
-              spark.write({id: req.id, statement: 'select', value: item})
-            })
-          })
-          .catch(err => { console.error(err) })
-      }
+      subscriptions[filterKey].push({spark: spark, reqId: req.id})
+      console.log('subscriptions:', JSON.stringify(subscriptions))
+      select(filter, items => {
+        spark.write({id: req.id, statement: 'select', value: items})
+      })
+      // console.log('subscriptions:', subscriptions)
+      // if (filter && filter.limit > 0) {
+      //   db.manyOrNone('SELECT * FROM items ORDER BY timestamp DESC LIMIT $1', [filter.limit])
+      //     .then(items => {
+      //       items.reverse().forEach(item => {
+      //         spark.write({id: req.id, statement: 'select', value: item})
+      //       })
+      //     })
+      //     .catch(err => { console.error(err) })
+      // }
     }
   })
   spark.on('end', () => {

@@ -10,9 +10,12 @@ class App extends React.Component {
     this.state = {items: []}
     flat.open()
 
-    flat.subscribe({limit: 5}, (statement, item) => {
-      // console.log(statement, item)
-      this.setState({items: this.state.items.concat([item])})
+    flat.subscribe({limit: 5}, (statement, value) => {
+      if (Array.isArray(value)) {
+        this.setState({items: value})
+      } else {
+        this.setState({items: this.state.items.concat([value])})
+      }
     })
   }
 
