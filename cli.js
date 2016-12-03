@@ -9,4 +9,5 @@ flat.open()
 const message = process.argv[2]
 flat.post({tags: ['foo', 'bar'], message: message}, (statement, item) => {
   console.log(statement, ':', item)
+  flat.exit()
 })
