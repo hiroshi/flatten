@@ -21,7 +21,9 @@ class App extends React.Component {
   }
 
   _post = () => {
-    flat.post({message: this.textarea.value})
+    flat.post({message: this.textarea.value}, () => {
+      this.textarea.value = ""
+    })
   }
 
   render () {
