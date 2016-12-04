@@ -20,6 +20,10 @@ class App extends React.Component {
     })
   }
 
+  _post = () => {
+    flat.post({message: this.textarea.value})
+  }
+
   render () {
     return (
       <div>
@@ -28,6 +32,8 @@ class App extends React.Component {
           {
             this.state.items.map(item => <li key={item.id}>{item.json.message}</li>)
           }
+        <textarea ref={ref => this.textarea = ref} />
+        <button onClick={this._post}>Post</button>
         </ul>
       </div>
     )

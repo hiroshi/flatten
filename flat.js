@@ -12,7 +12,9 @@ const flat = {
   _request: function(method, value, callback) {
     const id = String(Math.random())
     const req = {id: id}
-    this._callbacks[id] = {callback: callback, once: method === 'post'}
+    if (callback) {
+      this._callbacks[id] = {callback: callback, once: method === 'post'}
+    }
     req[method] = value
     client.write(req)
   },
@@ -24,9 +26,11 @@ const flat = {
     })
     client.on('data', data => {
       callback = this._callbacks[data.id]
-      callback.callback(data.statement, data.value)
-      if (callback.once) {
-        delete this._callbacks[data.id]
+      if (callback) {
+        callback.callback(data.statement, data.value)
+        if (callback.once) {
+          delete this._callbacks[data.id]
+        }
       }
     })
     client.on('reconnected', opts => {

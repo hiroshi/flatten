@@ -28,7 +28,7 @@ function select(filter, callback) {
   if (filter && filter.limit > 0) {
     db.manyOrNone('SELECT * FROM items ORDER BY timestamp DESC LIMIT $1', [filter.limit])
       .then(items => {
-        callback(items)
+        callback(items.reverse())
         // items.reverse().forEach(item => {
         //   spark.write({id: req.id, statement: 'select', value: item})
         // })
